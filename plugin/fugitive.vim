@@ -3059,12 +3059,25 @@ function! fugitive#statusline(...) abort
   if s:buffer().commit() != ''
     let status .= ':' . s:buffer().commit()[0:7]
   endif
-  let status .= '('.fugitive#head(7).')'
+  let status .= '('.fugitive#head(7).fugitive#filestate().')'
   if &statusline =~# '%[MRHWY]' && &statusline !~# '%[mrhwy]'
     return ',GIT'.status
   else
     return '[Git'.status.']'
   endif
+endfunction
+
+function! fugitive#filestate() abort
+  if !exists('b:git_dir')
+    return ''
+  endif
+
+  let filestate = s:repo().git_chomp_in_tree('status','--porcelain',@%)
+  let flag = ''
+  if !empty(filestate)
+    let flag = ' '.substitute(filestate,'\s*\(.*\)\s+.*$','\1','')
+  endif
+  return flag
 endfunction
 
 function! fugitive#head(...) abort
